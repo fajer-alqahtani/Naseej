@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		1C7C65D02E851C84004F90EE /* Naseej.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Naseej.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		89AA826C2E8E6D0200C3BC4B /* nassej.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = nassej.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -47,6 +48,13 @@
 			isa = PBXGroup;
 			children = (
 				1C7C65D02E851C84004F90EE /* Naseej.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		89AA826E2E8E6D0200C3BC4B /* Products */ = {
+			isa = PBXGroup;
+			children = (
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -104,6 +112,12 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1C7C65D12E851C84004F90EE /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 89AA826E2E8E6D0200C3BC4B /* Products */;
+					ProjectRef = 89AA826C2E8E6D0200C3BC4B /* nassej.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				1C7C65CF2E851C84004F90EE /* Naseej */,
