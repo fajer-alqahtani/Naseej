@@ -4,11 +4,18 @@
 //
 //  Created by Fajer alQahtani on 03/04/1447 AH.
 //
-
 import SwiftUI
+
 
 struct watertracker: View {
     @State private var remindersOn = false
+    @State  var numOfcups = 0
+    func incrementCups(){
+        numOfcups += 1
+    }
+    func decrementCups(){
+        numOfcups -= 1
+    }
     var body: some View {
         VStack {
             Image(systemName: "")
@@ -19,8 +26,14 @@ struct watertracker: View {
             Toggle(isOn: $remindersOn ) {
                 Text("Apple health")
             }
-            Stepper(value: /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Value@*/.constant(4)/*@END_MENU_TOKEN@*/, in: /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Range@*/1...10/*@END_MENU_TOKEN@*/) {
-                Text("Cups to drink per day 0")
+            Stepper() {
+                Text("Cups to drink per day " + String(numOfcups) )
+                
+            }
+            onIncrement: {
+              incrementCups()
+            }  onDecrement:{
+                 decrementCups()
             }
 
         }
@@ -31,7 +44,8 @@ struct watertracker: View {
     }
 }
 
-#Preview {
-    ContentView()
-}
+//#Preview {
+  //  watertracker()
+//}
+
 

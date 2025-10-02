@@ -2,7 +2,7 @@
 //  NaseejApp.swift
 //  Naseej
 //
-//  Created by Fajer alQahtani on 03/04/1447 AH.
+//  Created by Fajer alQahtani on 10/04/1447 AH.
 //
 
 import SwiftUI
@@ -11,7 +11,8 @@ import SwiftUI
 struct NaseejApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView()   // شاشة البداية
         }
     }
 }
+
