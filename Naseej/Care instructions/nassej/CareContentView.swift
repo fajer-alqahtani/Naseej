@@ -10,7 +10,7 @@ import SwiftUI
 let BG_COLOR = Color(red: 218/255, green: 232/255, blue: 230/255)   // لون الخلفية الأساسي
 let PRIMARY_COLOR = Color(red: 15/255, green: 105/255, blue: 111/255) // اللون الأساسي للأزرار والعناوين
 
-struct ContentView: View {
+struct CareContentView: View {
     @State private var showSheet = false
     
     var body: some View {
@@ -134,5 +134,5 @@ struct CareCard: View {
 }
 
 #Preview {
-    ContentView()
+    CareContentView()
 }
