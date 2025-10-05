@@ -11,7 +11,7 @@ import SwiftUI
 struct NaseejApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()   // شاشة البداية
+            SCANContentView()  // شاشة البداية
         }
     }
 }
