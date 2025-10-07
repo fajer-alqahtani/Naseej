@@ -7,53 +7,109 @@
 
 import SwiftUI
 
+// MARK: - Breathability Sheet (drop-in)
+struct BreathabilitySheet: View {
+    @State private var selectedIndex: Int = 0
 
-// MARK: - Helpers
-extension Color {
-    init(hex: String) {
-        let scanner = Scanner(string: hex)
-        _ = scanner.scanString("#")
-        var rgb: UInt64 = 0
-        scanner.scanHexInt64(&rgb)
-        let r = Double((rgb >> 16) & 0xFF) / 255.0
-        let g = Double((rgb >>  8) & 0xFF) / 255.0
-        let b = Double(rgb & 0xFF) / 255.0
-        self.init(red: r, green: g, blue: b)
+    // Palette (RGB to avoid hex helpers)
+    private let ink      = Color(red: 15/255,  green: 105/255, blue: 111/255)  // #0F696F
+    private let text2    = Color(red: 107/255, green: 112/255, blue: 92/255)   // #6B705C
+    private let bg       = Color(red: 217/255, green: 229/255, blue: 228/255)  // #D9E5E4
+
+    // Simple fabric model (local, so it won’t conflict with your other types)
+    struct BFabric: Identifiable {
+        let id = UUID()
+        let name: String
+        let composition: String
+        let score: Double
+        let bestTempRangeC: String
+        let suitableForBabies: Bool
+        let notes: String
     }
-}
 
-// MARK: - Gauge
-struct BreathabilityCircle: View {
-    var score: Double
-    var maxScore: Double = 10
-    var lineWidth: CGFloat = 12
-    var size: CGFloat = 120
+    // Demo data (you can remove when you wire real scan data)
+    private let fabrics: [BFabric] = [
+        .init(name: "Cotton",    composition: "100% Cotton",    score: 8.0, bestTempRangeC: "22–30", suitableForBabies: true,  notes: "Breathable, absorbs sweat."),
+        .init(name: "Polyester", composition: "100% Polyester", score: 3.0, bestTempRangeC: "16–22", suitableForBabies: false, notes: "Low airflow, traps heat."),
+        .init(name: "Linen",     composition: "100% Linen",     score: 9.0, bestTempRangeC: "25–35", suitableForBabies: true,  notes: "Very breathable, dries fast.")
+    ]
 
-    private var progress: CGFloat { CGFloat(min(max(score / maxScore, 0), 1)) }
+    private var fabric: BFabric { fabrics[selectedIndex] }
 
     var body: some View {
-        ZStack {
-            Circle()
-                .stroke(Color.gray.opacity(0.2), lineWidth: lineWidth)
+        VStack(alignment: .leading, spacing: 20) {
 
-            Circle()
-                .trim(from: 0, to: progress)
-                .stroke(
-                    Color(hex: "#0F696F"),
-                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
+            // Title + subtitle
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Breathability")
+                    .font(.title.bold())
+                    .foregroundColor(ink)
+                Text("How well this fabric lets air flow.")
+                    .font(.caption)
+                    .foregroundColor(ink.opacity(0.8))
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
 
-            Text(String(format: "%.1f", score))
-                .font(.system(size: size * 0.22, weight: .bold))
-                .foregroundColor(Color(hex: "#6B705C"))
+            // Temporary selector while testing
+            Picker("Fabric", selection: $selectedIndex) {
+                ForEach(fabrics.indices, id: \.self) { i in
+                    Text(fabrics[i].name).tag(i)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 16)
+
+            // Gauge
+            HStack { Spacer()
+                BCircle(score: fabric.score, tint: ink, number: text2)
+                    .padding(.top, 6)
+                Spacer()
+            }
+
+            // Status pill
+            HStack { Spacer()
+                BPill(text: statusText(for: fabric.score))
+                    .foregroundColor(.primary)
+                Spacer()
+            }
+
+            // Notes pill (with small icon)
+            HStack { Spacer()
+                BNote(text: fabric.notes, tint: ink)
+                Spacer()
+            }
+
+            // Three cards
+            HStack(spacing: 14) {
+                BCard(title: "Best for \(fabric.bestTempRangeC) °C", icon: "thermometer")
+                BCard(title: fabric.suitableForBabies ? "Suitable for babies" : "Not ideal for babies",
+                      icon: "figure.and.child.holdinghands")
+                BCard(title: "Higher airflow", icon: "wind")
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+
+            Spacer(minLength: 24)
         }
-        .frame(width: size, height: size)
+        .background(bg.ignoresSafeArea())
+        // Optional: set the sheet sizes and drag indicator
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+
+    private func statusText(for score: Double) -> String {
+        switch score {
+        case ..<3:  return "Low breathability"
+        case 3..<7: return "Moderately breathable"
+        default:    return "Highly breathable"
+        }
     }
 }
 
-// MARK: - Reusable views
-struct InfoPill: View {
+// MARK: - Small components (names prefixed to avoid clashes)
+
+private struct BPill: View {
     var text: String
     var body: some View {
         Text(text)
@@ -67,14 +123,14 @@ struct InfoPill: View {
     }
 }
 
-struct NotePill: View {
+private struct BNote: View {
     var text: String
-    var icon: String = "info.circle"
+    var tint: Color
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: icon)
+            Image(systemName: "info.circle")
                 .font(.system(size: 15))
-                .foregroundColor(Color(hex: "#0F696F"))
+                .foregroundColor(tint)
             Text(text)
                 .font(.subheadline)
                 .foregroundColor(.black)
@@ -88,33 +144,29 @@ struct NotePill: View {
     }
 }
 
-// MARK: - Mini Card (BIGGER)
-struct MiniInfoCard: View {
+private struct BCard: View {
     var title: String
     var icon: String
-    var tint: Color = .white
-
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(alignment: .leading, spacing: 10) {
                 Text(title)
-                    .font(.headline) // was subheadline
-                    .foregroundColor(Color(hex: "#0F696F"))
+                    .font(.headline)
+                    .foregroundColor(Color(red: 15/255, green: 105/255, blue: 111/255))
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
             }
-            .padding(16) // was 14
+            .padding(16)
 
-            // Larger watermark icon
             Image(systemName: icon)
-                .font(.system(size: 34))       // was 28
+                .font(.system(size: 34))
                 .foregroundColor(.black.opacity(0.12))
-                .padding(12)                    // was 10
+                .padding(12)
         }
-        .frame(height: 150)                      // was 128
+        .frame(height: 150)
         .frame(maxWidth: .infinity)
-        .background(tint)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous)) // was 14
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(.black.opacity(0.06), lineWidth: 0.5)
@@ -123,118 +175,31 @@ struct MiniInfoCard: View {
     }
 }
 
-// MARK: - Sample data
-struct FabricInfo: Identifiable {
-    let id = UUID()
-    let name: String
-    let composition: String
-    let score: Double
-    let bestTempRangeC: String
-    let suitableForBabies: Bool
-    let notes: String
-}
+private struct BCircle: View {
+    var score: Double
+    var maxScore: Double = 10
+    var lineWidth: CGFloat = 14
+    var size: CGFloat = 140
+    var tint: Color
+    var number: Color
 
-let sampleFabrics: [FabricInfo] = [
-    .init(name: "Cotton", composition: "100% Cotton", score: 8.0,
-          bestTempRangeC: "22–30", suitableForBabies: true,
-          notes: "Breathable, absorbs sweat."),
-    .init(name: "Polyester", composition: "100% Polyester", score: 3.0,
-          bestTempRangeC: "16–22", suitableForBabies: false,
-          notes: "Low airflow, traps heat."),
-    .init(name: "Linen", composition: "100% Linen", score: 9.0,
-          bestTempRangeC: "25–35", suitableForBabies: true,
-          notes: "Very breathable, dries fast.")
-]
-
-// MARK: - Screen
-struct ContentView: View {
-    @State private var showingBottomSheet = false
-    @State private var selectedIndex: Int = 0
-    private var fabric: FabricInfo { sampleFabrics[selectedIndex] }
+    private var progress: CGFloat { CGFloat(min(max(score / maxScore, 0), 1)) }
 
     var body: some View {
-        VStack {
-            Button("Breathability") {
-                showingBottomSheet.toggle()
-            }
-            .buttonStyle(.borderedProminent)
+        ZStack {
+            Circle().stroke(Color.gray.opacity(0.2), lineWidth: lineWidth)
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(tint, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            Text(String(format: "%.1f", score))
+                .font(.system(size: size * 0.22, weight: .bold))
+                .foregroundColor(number)
         }
-        .padding()
-        .sheet(isPresented: $showingBottomSheet) {
-            VStack(alignment: .leading, spacing: 20) { // + more vertical spacing
-
-                // Title + subtitle
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Breathability")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color(hex: "#0F696F"))
-                    Text("How well this fabric lets air flow.")
-                        .font(.caption)
-                        .foregroundColor(Color(hex: "#0F696F").opacity(0.8))
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-
-                // Selector (keep while testing)
-                Picker("Fabric", selection: $selectedIndex) {
-                    ForEach(sampleFabrics.indices, id: \.self) { i in
-                        Text(sampleFabrics[i].name).tag(i)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, 16)
-
-                // Gauge — bigger
-                HStack {
-                    Spacer()
-                    BreathabilityCircle(score: fabric.score,
-                                        maxScore: 10,
-                                        lineWidth: 14,   // thicker
-                                        size: 140)       // larger
-                    Spacer()
-                }
-                .padding(.top, 6)
-
-                // Status pill
-                HStack { Spacer(); InfoPill(text: statusText(for: fabric.score)); Spacer() }
-
-                // Notes pill
-                HStack { Spacer(); NotePill(text: fabric.notes); Spacer() }
-
-                // Bigger cards + more breathing room
-                HStack(spacing: 14) { // was 12
-                    MiniInfoCard(
-                        title: "Best for \(fabric.bestTempRangeC) °C",
-                        icon: "thermometer"
-                    )
-                    MiniInfoCard(
-                        title: fabric.suitableForBabies ? "Suitable for babies" : "Not ideal for babies",
-                        icon: "figure.and.child.holdinghands"
-                    )
-                    MiniInfoCard(
-                        title: "Higher airflow",
-                        icon: "wind"
-                    )
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)   // bring closer to pills
-
-                Spacer(minLength: 24) // more bottom space
-            }
-            .background(Color(hex: "#D9E5E4").ignoresSafeArea())
-        }
-    }
-
-    private func statusText(for score: Double) -> String {
-        switch score {
-        case ..<3:  return "Low breathability"
-        case 3..<7: return "Moderately breathable"
-        default:    return "Highly breathable"
-        }
+        .frame(width: size, height: size)
     }
 }
 
 #Preview {
-    ContentView()
+    BreathabilitySheet()
 }

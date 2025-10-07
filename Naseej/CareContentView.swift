@@ -10,35 +10,8 @@ import SwiftUI
 let BG_COLOR = Color(red: 218/255, green: 232/255, blue: 230/255)   // لون الخلفية الأساسي
 let PRIMARY_COLOR = Color(red: 15/255, green: 105/255, blue: 111/255) // اللون الأساسي للأزرار والعناوين
 
-struct CareContentView: View {
-    @State private var showSheet = false
-    
-    var body: some View {
-        ZStack {
-            // خلفية بلون واحد
-            BG_COLOR.ignoresSafeArea()
-            
-            VStack {
-                Button(action: {
-                    showSheet.toggle()
-                }) {
-                    Text("Care Instructions")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(width: 220)
-                        .background(PRIMARY_COLOR)
-                        .cornerRadius(12)
-                }
-            }
-        }
-        .sheet(isPresented: $showSheet) {
-            CareInstructionsView()
-        }
-    }
-}
 
-struct CareInstructionsView: View {
+struct CareContentView: View {
     var body: some View {
         ZStack {
             // نفس الخلفية في الـ Sheet
